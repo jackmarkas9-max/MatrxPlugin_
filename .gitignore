@@ -1,0 +1,13 @@
+target/
+*.class
+*.jar
+*.log
+*.yml
+!.github/workflows/*.yml
+!src/main/resources/*.yml
+.idea/
+*.iml
+.settings/
+.project
+.classpath
+.vscode/

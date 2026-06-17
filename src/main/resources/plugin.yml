@@ -1,0 +1,32 @@
+name: Matrx
+version: 1.0.0
+main: net.matrx.plugin.MatrxPlugin
+api-version: '1.21'
+
+commands:
+  parkour:
+    aliases: [pk]
+    description: Main parkour command
+  checkpoint:
+    aliases: [cp]
+    description: Return to your last checkpoint
+  rank:
+    aliases: [ranks]
+    description: View rank info or manage ranks
+
+permissions:
+  matrx.admin:
+    description: Full admin access
+    default: op
+  matrx.course.create:
+    description: Create and manage parkour courses
+    default: op
+  matrx.course.delete:
+    description: Delete parkour courses
+    default: op
+  matrx.rank.set:
+    description: Set a player's rank
+    default: op
+  matrx.rank.manage:
+    description: Create and manage ranks
+    default: op
