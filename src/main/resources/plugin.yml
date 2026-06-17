@@ -13,6 +13,9 @@ commands:
   rank:
     aliases: [ranks]
     description: View rank info or manage ranks
+  diewand:
+    aliases: [dw]
+    description: Death zone management tool
 
 permissions:
   matrx.admin:

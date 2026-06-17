@@ -93,11 +93,11 @@ public class ParkourCommand implements CommandExecutor, TabCompleter {
         if (admin) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "  &c&l✦ Admin Commands:"));
             player.sendMessage(ChatColor.GRAY + "  /pk create/delete <name>");
-            player.sendMessage(ChatColor.GRAY + "  /pk setstart/setend/addcp/removecp <name>");
-            player.sendMessage(ChatColor.GRAY + "  /pk settier/setpar/setreward/setreqrank <name>");
-            player.sendMessage(ChatColor.GRAY + "  /pk setdisplay/rename <name>");
-            player.sendMessage(ChatColor.GRAY + "  /pk addstar/removestar <name>");
-            player.sendMessage(ChatColor.GRAY + "  /pk tpstart/tpcheckpoint <name>");
+            player.sendMessage(ChatColor.GRAY + "  /pk setstart/setend/addcp/removecp <name|id>");
+            player.sendMessage(ChatColor.GRAY + "  /pk settier/setpar/setreward/setreqrank <name|id>");
+            player.sendMessage(ChatColor.GRAY + "  /pk setdisplay/rename <name|id>");
+            player.sendMessage(ChatColor.GRAY + "  /pk addstar/removestar <name|id>");
+            player.sendMessage(ChatColor.GRAY + "  /pk tpstart/tpcheckpoint <name|id>");
         }
         player.sendMessage(ChatColor.GRAY + "╚══════════════════════════════╝");
     }
@@ -112,7 +112,7 @@ public class ParkourCommand implements CommandExecutor, TabCompleter {
         for (Course course : courseManager.getCourses().values()) {
             String req = course.getRequiredRank().isEmpty() ? "" : " &8[&e" + course.getRequiredRank() + "+&8]";
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "  " + course.getTierDisplay() + " &f" + course.getDisplayName()
+                "  &7#" + course.getId() + " " + course.getTierDisplay() + " &f" + course.getDisplayName()
                 + " &7(" + course.getTotalCheckpoints() + " CP, &e" + course.getXpReward() + " XP&7)"
                 + req));
         }
@@ -258,8 +258,9 @@ public class ParkourCommand implements CommandExecutor, TabCompleter {
         }
         Course course = new Course(name, "&e" + name, null, null, new ArrayList<>(), "", 50);
         courseManager.addCourse(course);
-        player.sendMessage(ChatColor.GREEN + "Created course: " + name);
+        player.sendMessage(ChatColor.GREEN + "Created course #" + course.getId() + ": " + name);
         player.sendMessage(ChatColor.GRAY + "Use /pk setstart " + name + " to set start, /pk addcp " + name + " for checkpoints.");
+        player.sendMessage(ChatColor.GRAY + "You can also use ID " + course.getId() + " instead of name.");
     }
 
     private void deleteCourse(Player player, String[] args) {
@@ -384,13 +385,13 @@ public class ParkourCommand implements CommandExecutor, TabCompleter {
         Course course = courseManager.getCourse(args[1]);
         if (course == null) { player.sendMessage(ChatColor.RED + "Course not found."); return; }
         String name = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-        courseManager.getCourses().put(course.getName(), new Course(
-            course.getName(), name, course.getStart(), course.getEnd(),
-            course.getCheckpoints(), course.getRequiredRank(), course.getXpReward()
-        ));
-        course.setTier(course.getTier());
-        course.setParTime(course.getParTime());
-        for (Course.HiddenStar star : course.getHiddenStars()) course.addHiddenStar(star);
+        Course updated = new Course(course.getName(), name, course.getStart(), course.getEnd(),
+            course.getCheckpoints(), course.getRequiredRank(), course.getXpReward());
+        updated.setId(course.getId());
+        updated.setTier(course.getTier());
+        updated.setParTime(course.getParTime());
+        for (Course.HiddenStar star : course.getHiddenStars()) updated.addHiddenStar(star);
+        courseManager.getCourses().put(course.getName(), updated);
         courseManager.saveCourses();
         player.sendMessage(ChatColor.GREEN + "Display name updated.");
     }
@@ -472,6 +473,7 @@ public class ParkourCommand implements CommandExecutor, TabCompleter {
 
         player.sendMessage(ChatColor.GRAY + "╔══════════════════════════════╗");
         player.sendMessage(ChatColor.translateAlternateColorCodes('&', "  &6✦ " + course.getDisplayName()));
+        player.sendMessage(ChatColor.GRAY + "  ID: &f#" + course.getId());
         player.sendMessage(ChatColor.GRAY + "  Internal Name: &f" + course.getName());
         player.sendMessage(ChatColor.GRAY + "  Tier: " + course.getTierDisplay());
         player.sendMessage(ChatColor.GRAY + "  Checkpoints: &f" + course.getTotalCheckpoints());

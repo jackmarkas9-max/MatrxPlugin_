@@ -12,12 +12,14 @@ public class DataStorage {
     private final File ranksFile;
     private final File coursesFile;
     private final File playersFile;
+    private final File deathzonesFile;
 
     public DataStorage(JavaPlugin plugin) {
         this.plugin = plugin;
         ranksFile = new File(plugin.getDataFolder(), "ranks.yml");
         coursesFile = new File(plugin.getDataFolder(), "courses.yml");
         playersFile = new File(plugin.getDataFolder(), "playerdata.yml");
+        deathzonesFile = new File(plugin.getDataFolder(), "deathzones.yml");
     }
 
     public Map<String, Rank> loadRanks() {
@@ -48,11 +50,15 @@ public class DataStorage {
         }
         YamlConfiguration config = YamlConfiguration.loadConfiguration(coursesFile);
         Map<String, Course> courses = new LinkedHashMap<>();
+        int maxId = 0;
         if (config.contains("courses")) {
             for (String key : config.getConfigurationSection("courses").getKeys(false)) {
-                courses.put(key.toLowerCase(), Course.deserialize(key, config.getConfigurationSection("courses." + key).getValues(true)));
+                Course c = Course.deserialize(key, config.getConfigurationSection("courses." + key).getValues(true));
+                courses.put(key.toLowerCase(), c);
+                if (c.getId() > maxId) maxId = c.getId();
             }
         }
+        Course.setNextId(maxId);
         return courses;
     }
 
@@ -107,41 +113,65 @@ public class DataStorage {
 
     public void saveDefaultRanks() {
         YamlConfiguration config = new YamlConfiguration();
+        config.set("ranks.stone.display-name", "&8Stone");
+        config.set("ranks.stone.prefix", "&8[Stone] ");
+        config.set("ranks.stone.xp-required", 0);
+        config.set("ranks.stone.weight", 1);
+        config.set("ranks.stone.permissions", List.of());
+
         config.set("ranks.bronze.display-name", "&6Bronze");
         config.set("ranks.bronze.prefix", "&6[Bronze] ");
-        config.set("ranks.bronze.xp-required", 0);
-        config.set("ranks.bronze.weight", 1);
+        config.set("ranks.bronze.xp-required", 50);
+        config.set("ranks.bronze.weight", 2);
         config.set("ranks.bronze.permissions", List.of());
 
         config.set("ranks.silver.display-name", "&7Silver");
         config.set("ranks.silver.prefix", "&7[Silver] ");
-        config.set("ranks.silver.xp-required", 100);
-        config.set("ranks.silver.weight", 2);
+        config.set("ranks.silver.xp-required", 150);
+        config.set("ranks.silver.weight", 3);
         config.set("ranks.silver.permissions", List.of());
 
         config.set("ranks.gold.display-name", "&eGold");
         config.set("ranks.gold.prefix", "&e[Gold] ");
         config.set("ranks.gold.xp-required", 300);
-        config.set("ranks.gold.weight", 3);
+        config.set("ranks.gold.weight", 4);
         config.set("ranks.gold.permissions", List.of());
 
         config.set("ranks.diamond.display-name", "&bDiamond");
         config.set("ranks.diamond.prefix", "&b[Diamond] ");
         config.set("ranks.diamond.xp-required", 600);
-        config.set("ranks.diamond.weight", 4);
+        config.set("ranks.diamond.weight", 5);
         config.set("ranks.diamond.permissions", List.of());
 
         config.set("ranks.emerald.display-name", "&aEmerald");
         config.set("ranks.emerald.prefix", "&a[Emerald] ");
         config.set("ranks.emerald.xp-required", 1000);
-        config.set("ranks.emerald.weight", 5);
+        config.set("ranks.emerald.weight", 6);
         config.set("ranks.emerald.permissions", List.of());
+
+        config.set("ranks.ruby.display-name", "&cRuby");
+        config.set("ranks.ruby.prefix", "&c[Ruby] ");
+        config.set("ranks.ruby.xp-required", 1500);
+        config.set("ranks.ruby.weight", 7);
+        config.set("ranks.ruby.permissions", List.of());
+
+        config.set("ranks.sapphire.display-name", "&9Sapphire");
+        config.set("ranks.sapphire.prefix", "&9[Sapphire] ");
+        config.set("ranks.sapphire.xp-required", 2500);
+        config.set("ranks.sapphire.weight", 8);
+        config.set("ranks.sapphire.permissions", List.of());
 
         config.set("ranks.legend.display-name", "&5Legend");
         config.set("ranks.legend.prefix", "&5[Legend] ");
-        config.set("ranks.legend.xp-required", 2000);
-        config.set("ranks.legend.weight", 6);
+        config.set("ranks.legend.xp-required", 4000);
+        config.set("ranks.legend.weight", 9);
         config.set("ranks.legend.permissions", List.of());
+
+        config.set("ranks.mythic.display-name", "&dMythic");
+        config.set("ranks.mythic.prefix", "&d[Mythic] ");
+        config.set("ranks.mythic.xp-required", 6000);
+        config.set("ranks.mythic.weight", 10);
+        config.set("ranks.mythic.permissions", List.of());
 
         config.set("ranks.admin.display-name", "&cAdmin");
         config.set("ranks.admin.prefix", "&c[Admin] ");
@@ -155,5 +185,38 @@ public class DataStorage {
     public void saveDefaultCourses() {
         YamlConfiguration config = new YamlConfiguration();
         saveConfig(config, coursesFile);
+    }
+
+    public Map<Integer, DeathZone> loadDeathZones() {
+        if (!deathzonesFile.exists()) {
+            try {
+                deathzonesFile.getParentFile().mkdirs();
+                deathzonesFile.createNewFile();
+            } catch (IOException e) {
+                plugin.getLogger().severe("Could not create deathzones.yml: " + e.getMessage());
+            }
+            return new LinkedHashMap<>();
+        }
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(deathzonesFile);
+        Map<Integer, DeathZone> zones = new LinkedHashMap<>();
+        if (config.contains("deathzones")) {
+            for (String key : config.getConfigurationSection("deathzones").getKeys(false)) {
+                try {
+                    int id = Integer.parseInt(key);
+                    zones.put(id, DeathZone.deserialize(id, config.getConfigurationSection("deathzones." + key).getValues(true)));
+                } catch (NumberFormatException e) {
+                    plugin.getLogger().warning("Invalid death zone ID: " + key);
+                }
+            }
+        }
+        return zones;
+    }
+
+    public void saveDeathZones(Map<Integer, DeathZone> zones) {
+        YamlConfiguration config = new YamlConfiguration();
+        for (Map.Entry<Integer, DeathZone> entry : zones.entrySet()) {
+            config.set("deathzones." + entry.getKey(), entry.getValue().serialize());
+        }
+        saveConfig(config, deathzonesFile);
     }
 }

@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Course {
+    private static int nextId = 1;
+    private int id;
     private String name;
     private String displayName;
     private Checkpoint start;
@@ -17,6 +19,7 @@ public class Course {
 
     public Course(String name, String displayName, Checkpoint start, Checkpoint end,
                   List<Checkpoint> checkpoints, String requiredRank, long xpReward) {
+        this.id = nextId++;
         this.name = name.toLowerCase();
         this.displayName = displayName;
         this.start = start;
@@ -29,6 +32,10 @@ public class Course {
         this.parTime = 30000;
     }
 
+    public static void setNextId(int id) { nextId = Math.max(nextId, id + 1); }
+
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
     public String getName() { return name; }
     public String getDisplayName() { return org.bukkit.ChatColor.translateAlternateColorCodes('&', displayName); }
     public String getRawDisplayName() { return displayName; }
@@ -84,6 +91,7 @@ public class Course {
 
     public Map<String, Object> serialize() {
         Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", id);
         map.put("display-name", displayName);
         map.put("xp-reward", xpReward);
         map.put("required-rank", requiredRank);
@@ -124,6 +132,9 @@ public class Course {
             (String) map.getOrDefault("required-rank", ""),
             ((Number) map.getOrDefault("xp-reward", 50)).longValue()
         );
+        if (map.containsKey("id")) {
+            course.id = ((Number) map.get("id")).intValue();
+        }
         course.tier = ((Number) map.getOrDefault("tier", 1)).intValue();
         course.parTime = ((Number) map.getOrDefault("par-time", 30000)).longValue();
         course.hiddenStars = stars;

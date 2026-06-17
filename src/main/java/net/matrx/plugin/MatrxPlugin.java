@@ -16,6 +16,7 @@ public class MatrxPlugin extends JavaPlugin {
     private AnimationManager animationManager;
     private ComboManager comboManager;
     private AchievementManager achievementManager;
+    private DeathZoneManager deathZoneManager;
 
     @Override
     public void onEnable() {
@@ -32,6 +33,7 @@ public class MatrxPlugin extends JavaPlugin {
         this.courseManager = new CourseManager(storage);
         this.comboManager = new ComboManager(animationManager);
         this.achievementManager = new AchievementManager(playerManager, animationManager);
+        this.deathZoneManager = new DeathZoneManager(storage);
 
         registerCommands();
         registerListeners();
@@ -40,7 +42,8 @@ public class MatrxPlugin extends JavaPlugin {
         getLogger().info("  Ranks: " + rankManager.getRanks().size()
             + " | Courses: " + courseManager.getCourses().size()
             + " | Players: " + playerManager.getAllPlayers().size());
-        getLogger().info("  Features: Combos, Achievements, Hidden Stars, Special Blocks, Ghost Recording");
+        getLogger().info("  Death Zones: " + deathZoneManager.getDeathZones().size());
+        getLogger().info("  Features: Invincibility, Combos, Achievements, Hidden Stars, Special Blocks, Death Zones");
     }
 
     @Override
@@ -56,14 +59,22 @@ public class MatrxPlugin extends JavaPlugin {
         getCommand("checkpoint").setExecutor(new CheckpointCommand(playerManager));
         getCommand("rank").setExecutor(new RankCommand(rankManager, playerManager, animationManager));
         getCommand("rank").setTabCompleter(new RankCommand(rankManager, playerManager, animationManager));
+        getCommand("diewand").setExecutor(new DiewandCommand(deathZoneManager));
+        getCommand("diewand").setTabCompleter(new DiewandCommand(deathZoneManager));
     }
 
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(
-            new ParkourListener(courseManager, playerManager, rankManager, animationManager, comboManager, achievementManager), this);
+            new ParkourListener(courseManager, playerManager, rankManager, animationManager, comboManager, achievementManager, deathZoneManager), this);
         getServer().getPluginManager().registerEvents(
             new PlayerListener(playerManager, rankManager, animationManager), this);
         getServer().getPluginManager().registerEvents(
             new GUIClickListener(courseManager, playerManager, rankManager, achievementManager), this);
+        getServer().getPluginManager().registerEvents(
+            new InvincibilityListener(), this);
+        getServer().getPluginManager().registerEvents(
+            new DiewandListener(deathZoneManager), this);
+        getServer().getPluginManager().registerEvents(
+            new BlockProtectionListener(), this);
     }
 }

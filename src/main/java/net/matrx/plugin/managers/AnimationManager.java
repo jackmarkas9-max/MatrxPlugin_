@@ -125,6 +125,7 @@ public class AnimationManager {
     public void playRankupEffects(Player player, String rankName) {
         if (!enabled) return;
         Location loc = player.getLocation();
+        String cleanName = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', rankName));
 
         player.sendTitle(
             ChatColor.translateAlternateColorCodes('&', "&6&l✦ RANK UP! ✦"),
@@ -136,13 +137,42 @@ public class AnimationManager {
         player.playSound(loc, Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 1.0f, 1.5f);
         player.playSound(loc, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
 
-        player.spawnParticle(Particle.FLASH, loc.add(0, 1, 0), 1, 0, 0, 0, 0);
-        player.spawnParticle(Particle.TOTEM_OF_UNDYING, loc.add(0, 1, 0), 60, 2, 3, 2, 0.5);
-        player.spawnParticle(Particle.END_ROD, loc, 40, 3, 3, 3, 0.1);
-        player.spawnParticle(Particle.FIREWORK, loc, 30, 2, 2, 2, 0.05);
+        spawnRankParticles(player, loc, cleanName);
 
         for (int i = 0; i < 3; i++) {
             spawnFirework(loc.clone().add(random.nextDouble() * 3 - 1.5, 0, random.nextDouble() * 3 - 1.5), true);
+        }
+    }
+
+    private void spawnRankParticles(Player player, Location loc, String rankName) {
+        loc = loc.add(0, 1, 0);
+        switch (rankName.toLowerCase()) {
+            case "stone" ->
+                player.spawnParticle(Particle.CLOUD, loc, 40, 2, 2, 2, 0.05);
+            case "bronze" ->
+                player.spawnParticle(Particle.WAX_ON, loc, 30, 2, 2, 2, 0.02);
+            case "silver" ->
+                player.spawnParticle(Particle.END_ROD, loc, 40, 2, 2, 2, 0.03);
+            case "gold" ->
+                player.spawnParticle(Particle.ENCHANT, loc, 50, 2, 2, 2, 0.5);
+            case "diamond" ->
+                player.spawnParticle(Particle.TOTEM_OF_UNDYING, loc, 40, 2, 3, 2, 0.5);
+            case "emerald" ->
+                player.spawnParticle(Particle.HAPPY_VILLAGER, loc, 40, 2, 2, 2, 0.5);
+            case "ruby" ->
+                player.spawnParticle(Particle.SOUL_FIRE_FLAME, loc, 50, 2, 2, 2, 0.02);
+            case "sapphire" ->
+                player.spawnParticle(Particle.SNOWFLAKE, loc, 50, 2, 2, 2, 0.05);
+            case "legend" ->
+                player.spawnParticle(Particle.PORTAL, loc, 60, 2, 3, 2, 0.3);
+            case "mythic" -> {
+                player.spawnParticle(Particle.FLASH, loc, 1, 0, 0, 0, 0);
+                player.spawnParticle(Particle.DRAGON_BREATH, loc, 50, 2, 3, 2, 0.05);
+            }
+            case "admin" ->
+                player.spawnParticle(Particle.FIREWORK, loc, 50, 3, 3, 3, 0.1);
+            default ->
+                player.spawnParticle(Particle.END_ROD, loc, 40, 3, 3, 3, 0.1);
         }
     }
 

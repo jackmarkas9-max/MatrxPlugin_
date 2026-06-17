@@ -26,7 +26,7 @@ public class ParkourPlayer {
     public ParkourPlayer(UUID uuid, String name) {
         this.uuid = uuid;
         this.name = name;
-        this.rankName = "bronze";
+        this.rankName = "stone";
         this.xp = 0;
         this.bestTimes = new HashMap<>();
         this.checkpointTimestamps = new HashMap<>();

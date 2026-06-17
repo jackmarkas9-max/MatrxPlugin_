@@ -31,7 +31,19 @@ public class CourseManager {
     }
 
     public Map<String, Course> getCourses() { return courses; }
-    public Course getCourse(String name) { return courses.get(name.toLowerCase()); }
+    public Course getCourse(String name) {
+        Course c = courses.get(name.toLowerCase());
+        if (c != null) return c;
+        try {
+            int id = Integer.parseInt(name);
+            return getCourseById(id);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+    public Course getCourseById(int id) {
+        return courses.values().stream().filter(c -> c.getId() == id).findFirst().orElse(null);
+    }
     public void addCourse(Course course) { courses.put(course.getName(), course); saveCourses(); }
     public void removeCourse(String name) { courses.remove(name.toLowerCase()); saveCourses(); }
 

@@ -17,16 +17,19 @@ public class ParkourListener implements Listener {
     private final AnimationManager animationManager;
     private final ComboManager comboManager;
     private final AchievementManager achievementManager;
+    private final DeathZoneManager deathZoneManager;
 
     public ParkourListener(CourseManager courseManager, PlayerManager playerManager,
                            RankManager rankManager, AnimationManager animationManager,
-                           ComboManager comboManager, AchievementManager achievementManager) {
+                           ComboManager comboManager, AchievementManager achievementManager,
+                           DeathZoneManager deathZoneManager) {
         this.courseManager = courseManager;
         this.playerManager = playerManager;
         this.rankManager = rankManager;
         this.animationManager = animationManager;
         this.comboManager = comboManager;
         this.achievementManager = achievementManager;
+        this.deathZoneManager = deathZoneManager;
     }
 
     @EventHandler
@@ -43,6 +46,7 @@ public class ParkourListener implements Listener {
         Location to = event.getTo();
 
         handleSpecialBlocks(player, to);
+        handleDeathZoneDetection(player, pPlayer);
 
         if (pPlayer.getActiveCourse() != null) {
             handleCheckpointDetection(player, pPlayer, to);
@@ -257,5 +261,32 @@ public class ParkourListener implements Listener {
                 return;
             }
         }
+    }
+
+    private void handleDeathZoneDetection(Player player, ParkourPlayer pPlayer) {
+        if (deathZoneManager == null) return;
+        DeathZone zone = deathZoneManager.findDeathZone(player.getLocation());
+        if (zone == null) return;
+
+        if (pPlayer.getActiveCourse() != null) {
+            Checkpoint cp = pPlayer.getLastCheckpoint();
+            if (cp != null) {
+                player.teleport(cp.toLocation(player.getWorld()));
+                player.sendMessage(ChatColor.RED + "You hit a death zone! Teleported to checkpoint.");
+            } else {
+                Course course = courseManager.getCourse(pPlayer.getActiveCourse());
+                if (course != null && course.getStart() != null) {
+                    player.teleport(course.getStart().toLocation(player.getWorld()));
+                    player.sendMessage(ChatColor.RED + "You hit a death zone! Teleported to start.");
+                }
+            }
+        } else {
+            player.teleport(player.getWorld().getSpawnLocation());
+            player.sendMessage(ChatColor.RED + "You hit a death zone! Teleported to spawn.");
+        }
+
+        player.playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5f, 1.0f);
+        player.spawnParticle(Particle.FLASH, player.getLocation().add(0, 1, 0), 1, 0, 0, 0, 0);
+        player.spawnParticle(Particle.SOUL_FIRE_FLAME, player.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.01);
     }
 }
